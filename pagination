@@ -1,0 +1,41 @@
+// before query
+	$limit = 15; // number of events per page
+	$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+	$start = ($page - 1) * $limit;
+
+	$count_query = "SELECT COUNT(*) AS total FROM Events";
+	$count_result = mysqli_query($connection, $count_query);
+	$total_events = mysqli_fetch_assoc($count_result)['total'];
+
+	$total_pages = ceil($total_events / $limit);
+
+	// end ng query mismo
+	LIMIT $start, $limit
+
+
+	//after code for table
+	<!-- PAGINATION (this lang iaadd) -->
+<nav>
+  <ul class="pagination justify-content-center mt-4">
+
+    <!-- Previous -->
+    <li class="page-item <?php if($page <= 1) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page - 1; ?>"><</a>
+    </li>
+
+    <!-- Page numbers -->
+    <?php for($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if($page == $i) echo 'active'; ?>">
+        <a class="page-link" href="?page=<?php echo $i; ?>">
+          <?php echo $i; ?>
+        </a>
+      </li>
+    <?php endfor; ?>
+
+    <!-- Next -->
+    <li class="page-item <?php if($page >= $total_pages) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page + 1; ?>">></a>
+    </li>
+
+  </ul>
+</nav>
