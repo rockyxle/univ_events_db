@@ -7,6 +7,18 @@ error_reporting(E_ALL);
 include('connect_to_db.php');
 include('check_user_role.php');
 
+$limit = 15; // number of events per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
+
+$count_query = "SELECT COUNT(*) AS total FROM Events";
+$count_result = mysqli_query($connection, $count_query);
+$total_events = mysqli_fetch_assoc($count_result)['total'];
+
+$total_pages = ceil($total_events / $limit);
+
+
+
 // search and filter
 $search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filter_venue = isset($_GET['filter_venue']) ? trim($_GET['filter_venue']) : '';
@@ -56,6 +68,7 @@ $sql_where
 GROUP BY e.EventID, e.EventName, v.EventVenueName, e.EventDate, e.EventCost
 $sql_having
 ORDER BY e.EventDate ASC
+LIMIT $start, $limit
 ";
 $result = mysqli_query($connection, $query);
 if (!$result) die('Query failed: ' . mysqli_error($connection));
@@ -79,6 +92,7 @@ while ($v = mysqli_fetch_assoc($venue_result)) {
   <link href="https://fonts.cdnfonts.com/css/arimo" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="pagination.css">
   <style>
     .search-bar input {
         border-radius: 0.375rem;
@@ -201,6 +215,32 @@ while ($v = mysqli_fetch_assoc($venue_result)) {
         <?php endif; ?>
     </div>
 </div>
+
+<!-- PAGINATION (this lang iaadd) -->
+<nav>
+  <ul class="pagination justify-content-center mt-4">
+
+    <!-- Previous -->
+    <li class="page-item <?php if($page <= 1) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page - 1; ?>"><</a>
+    </li>
+
+    <!-- Page numbers -->
+    <?php for($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if($page == $i) echo 'active'; ?>">
+        <a class="page-link" href="?page=<?php echo $i; ?>">
+          <?php echo $i; ?>
+        </a>
+      </li>
+    <?php endfor; ?>
+
+    <!-- Next -->
+    <li class="page-item <?php if($page >= $total_pages) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page + 1; ?>">></a>
+    </li>
+
+  </ul>
+</nav>
 
 <!-- Pop-up if insert/add event is successful -->
 <?php

@@ -1,0 +1,23 @@
+.pagination {
+    margin-top: 20px;
+}
+
+.pagination .page-item .page-link {
+    color: #1f628e;         
+    border-radius: 0.25rem;  
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    padding: 5px 10px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #1f628e;
+    color: #fff;
+    border-color: #1f628e;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+}

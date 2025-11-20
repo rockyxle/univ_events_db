@@ -8,6 +8,16 @@ error_reporting(E_ALL);
 include('connect_to_db.php');
 include('check_user_role.php');
 
+$limit = 15; // number of events per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
+
+$count_query = "SELECT COUNT(*) AS total FROM Events";
+$count_result = mysqli_query($connection, $count_query);
+$total_events = mysqli_fetch_assoc($count_result)['total'];
+
+$total_pages = ceil($total_events / $limit);
+
 // fetch search & filter inputs
 $search_term   = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filter_year   = isset($_GET['filter_year']) ? trim($_GET['filter_year']) : '';
@@ -59,6 +69,7 @@ LEFT JOIN
 $sql_where
 ORDER BY
    p.ParticipantLastName ASC
+LIMIT $start, $limit
 ";
 
 $result = mysqli_query($connection, $query);
@@ -80,6 +91,7 @@ while ($c = mysqli_fetch_assoc($course_result)) $courses_list[] = $c;
 <link href="https://fonts.cdnfonts.com/css/arimo" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="pagination.css">
 <style>
 .search-bar input {
     border-radius: 0.375rem;
@@ -130,7 +142,7 @@ while ($c = mysqli_fetch_assoc($course_result)) $courses_list[] = $c;
           <button class="btn <?php echo $filters_active ? 'btn-filter-active' : 'btn-light'; ?> border" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas">
              Filter
           </button>
-          <button class="btn btn-light add-event-btn" data-bs-toggle="modal" data-bs-target="#addParticipantModal">
+          <button class="btn btn-light add-event-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
               + Add Participant
           </button>
       </div>
@@ -216,6 +228,32 @@ while ($c = mysqli_fetch_assoc($course_result)) $courses_list[] = $c;
 <?php endif; ?>
 </div>
 
+	<!-- PAGINATION (this lang iaadd) -->
+  <nav>
+  <ul class="pagination justify-content-center mt-4">
+
+    <!-- Previous -->
+    <li class="page-item <?php if($page <= 1) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page - 1; ?>"><</a>
+    </li>
+
+    <!-- Page numbers -->
+    <?php for($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if($page == $i) echo 'active'; ?>">
+        <a class="page-link" href="?page=<?php echo $i; ?>">
+          <?php echo $i; ?>
+        </a>
+      </li>
+    <?php endfor; ?>
+
+    <!-- Next -->
+    <li class="page-item <?php if($page >= $total_pages) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page + 1; ?>">></a>
+    </li>
+
+  </ul>
+</nav>
+
 <!-- popup messages for insert, update, delete -->
 <?php
 $alerts = ['insert_msg', 'update_msg', 'delete_msg'];
@@ -232,10 +270,10 @@ foreach ($alerts as $msg) {
 ?>
 
 <!-- modal for adding new participant -->
-<div class="modal fade" id="addParticipantModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
  <div class="modal-dialog">
    <div class="modal-content">
-     <form action="add_participant.php" method="POST">
+     <form action="add_participant.php" method="POST" onsubmit="return confirmSaveParticipant();">
        <div class="modal-header">
          <h5 class="modal-title">Add New Participant</h5>
          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

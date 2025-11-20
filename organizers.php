@@ -9,6 +9,16 @@ error_reporting(E_ALL);
 include('connect_to_db.php');
 include('check_user_role.php');
 
+$limit = 15; // number of events per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
+
+$count_query = "SELECT COUNT(*) AS total FROM Events";
+$count_result = mysqli_query($connection, $count_query);
+$total_events = mysqli_fetch_assoc($count_result)['total'];
+
+$total_pages = ceil($total_events / $limit);
+
 // fetch search & filter inputs
 $search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filter_contact = isset($_GET['filter_contact']) ? trim($_GET['filter_contact']) : '';
@@ -64,6 +74,7 @@ GROUP BY
 $sql_having
 ORDER BY 
     o.OrganizerName ASC
+LIMIT $start, $limit
 ";
 
 $result = mysqli_query($connection, $query);
@@ -82,6 +93,7 @@ if(!$result) {
   <link href="https://fonts.cdnfonts.com/css/arimo" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="pagination.css">
   <style>
     .search-bar input {
         border-radius: 0.375rem;
@@ -221,6 +233,33 @@ if(!$result) {
   <?php endif; ?>
 </div>
 
+	<!-- PAGINATION (this lang iaadd) -->
+  <nav>
+  <ul class="pagination justify-content-center mt-4">
+
+    <!-- Previous -->
+    <li class="page-item <?php if($page <= 1) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page - 1; ?>"><</a>
+    </li>
+
+    <!-- Page numbers -->
+
+    <?php for($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if($page == $i) echo 'active'; ?>">
+        <a class="page-link" href="?page=<?php echo $i; ?>">
+          <?php echo $i; ?>
+        </a>
+      </li>
+    <?php endfor; ?>
+
+    <!-- Next -->
+    <li class="page-item <?php if($page >= $total_pages) echo 'disabled'; ?>">
+      <a class="page-link" href="?page=<?php echo $page + 1; ?>">></a>
+    </li>
+
+  </ul>
+</nav>
+
 <!-- popup messages for insert, update, delete -->
 <?php
 $alerts = ['insert_msg', 'update_msg', 'delete_msg'];
@@ -276,6 +315,14 @@ foreach ($alerts as $msg) {
             <small id="orgConNumLimitMsg" class="text-danger" style="display:none;">
                 Maximum Contact Number Length is 11
             </small>
+
+          </div>
+          <div class="form-group">
+            <label for="o_password">Password</label>
+            <input type="text" id="o_password" name="o_password" class="form-control" required maxlength="255">
+            <small id="orgPassLimitMsg" class="text-danger" style="display:none;">
+                Maximum password lengthr reached
+            </small>
           </div>
         </div>
 
@@ -286,6 +333,7 @@ foreach ($alerts as $msg) {
       </form>
     </div>
   </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
