@@ -11,12 +11,13 @@ if (isset($_POST['add_organizer'])) {
     $contact_person = trim($_POST['o_contact_person']);
     $email = trim($_POST['o_email']);
     $contact_number = trim($_POST['o_contact']);
+    $password = trim($_POST['o_password']);
 
-    
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     // insert into database table
     $insert_organizer_query = "
-        INSERT INTO Organizers (OrganizerName, OrganizerContactPerson, EmailOfContactPerson, NumberOfContactPerson)
-        VALUES ('$name', '$contact_person', '$email', '$contact_number')
+        INSERT INTO Organizers (OrganizerName, OrganizerContactPerson, EmailOfContactPerson, NumberOfContactPerson, OrganizerPassword)
+        VALUES ('$name', '$contact_person', '$email', '$contact_number', '$hashed_password')
     ";
 
     // redirect back to organizers page
