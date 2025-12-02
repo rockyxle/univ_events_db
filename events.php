@@ -59,11 +59,15 @@ SELECT
     v.EventVenueName,
     e.EventDate,
     e.EventCost,
-    COUNT(p.ParticipantID) AS NumberOfParticipants
+    COUNT(p.ParticipantID) AS NumberOfParticipants,
+    GROUP_CONCAT(DISTINCT o.OrganizerName SEPARATOR ', ') AS Organizers
 FROM 
     Events e
 JOIN EventVenues v ON e.EventVenueID = v.EventVenueID
 LEFT JOIN EventParticipants p ON e.EventID = p.EventID
+LEFT JOIN EventOrganizers eo ON e.EventID = eo.EventID
+LEFT JOIN Organizers o ON eo.OrganizerID = o.OrganizerID
+
 $sql_where
 GROUP BY e.EventID, e.EventName, v.EventVenueName, e.EventDate, e.EventCost
 $sql_having
@@ -186,7 +190,7 @@ while ($v = mysqli_fetch_assoc($venue_result)) {
     </div>
 
     <!-- events list -->
-    <div class="list-item-container p-4 rounded shadow-sm mt-3">
+    <div class="list-item-container p-4 rounded shadow-sm mt-3 overflow-auto">
         <?php if(mysqli_num_rows($result) > 0): ?>
             <?php while($row = mysqli_fetch_assoc($result)): ?>
                 <div class="event-row" role="article" aria-labelledby="ev-<?php echo $row['EventID']; ?>">
@@ -202,6 +206,7 @@ while ($v = mysqli_fetch_assoc($venue_result)) {
                             <div><strong>Venue:</strong> <?php echo htmlspecialchars($row['EventVenueName']); ?></div>
                             <div><strong>Cost:</strong> Php <?php echo number_format($row['EventCost'], 2); ?></div>
                             <div><strong>Participants:</strong> <?php echo $row['NumberOfParticipants']; ?></div>
+                            <div><strong>Organized by: </strong><?php echo !empty($row['Organizers']) ? htmlspecialchars($row['Organizers']) : 'None'; ?> </div>
                             <div class="mt-2">
                                 <a href="update_event.php?id=<?php echo $row['EventID']; ?>" class="text-primary">Update</a> |
                                 <a href="delete_event.php?id=<?php echo $row['EventID']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" class="text-danger">Delete</a>
